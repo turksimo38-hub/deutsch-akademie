@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
@@ -8,6 +8,10 @@ app = Flask(__name__)
 # إعداد الاتصال بـ Google Sheets
 def connect_to_sheets():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    
+    # 💡 زدنا هاد السطور هنا باش الكود يدوز من البروكسي ديال PythonAnywhere وما يعطيكش خطأ ف الإرسال
+    os.environ['http_proxy'] = "http://proxy.server:3128"
+    os.environ['https_proxy'] = "http://proxy.server:3128"
     
     # هنا الكود كايقرا الساروت من الملف محلياً، وإيلا ترفع أونلاين كايقراه من Render بأمان
     if os.path.exists("credentials.json"):
@@ -58,21 +62,10 @@ def register():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"status": "error", "message": "وقع مشكل ف التسجيل، عاود جرب."}), 500
-        
-        # الاتصال بالجدول وإضافة السطر الجديد
-        sheet = connect_to_sheets()
-        sheet.append_row([name, telefon, niveau, preis, kurszeit])
-        
-        return jsonify({"status": "success", "message": "تم تسجيلك بنجاح ف الـ Google Sheet!"})
-    
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"status": "error", "message": "وقع مشكل ف التسجيل، عاود جرب."}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
-    from flask import send_from_directory
 
 @app.route('/sitemap.xml')
 def sitemap():
     return send_from_directory('.', 'sitemap.xml')
+
+if __name__ == '__main__':
+    app.run(debug=True)
